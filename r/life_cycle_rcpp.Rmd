@@ -1,0 +1,133 @@
+---
+title: "Life Cycle Model with Rcpp"
+author: "Kazuharu Yanagimoto"
+date: '`r format(Sys.time(), "%B %d, %Y")`'
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = here::here("docs")) })
+output: html_document
+---
+
+```{r setup, include=FALSE}
+rm(list = ls())
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(Rcpp)
+library(RcppThread)
+library(Rtauchen)
+library(tidyverse)
+library(patchwork)
+library(microbenchmark)
+
+sourceCpp(here('r/life_cycle_single.cpp'))
+sourceCpp(here('r/life_cycle_threads.cpp'))
+```
+
+## Model
+This note examines the model of [Parallel Computing](https://github.com/davidzarruk/Parallel_Computing/) by Rcpp.
+
+For $t = 1, \dots, T$, households solve
+$$\begin{aligned}
+V(t, e, x) =& \max_{c, x'} \frac{c^{1 - \sigma}}{1 - \sigma} + \beta \mathbb{E}V(t + 1, e', x') \\
+&\text{s.t. } \\
+& c + x' \le (1 + r)x + ew \\
+& \text{Pr}(e' | e) = \Gamma(e) \\
+& x' \ge 0
+\end{aligned}$$
+
+
+```{r initilization}
+# Grid for x
+nx            = 1500
+xmin          = 0.1 
+xmax          = 4.0 
+
+x_grid = seq(from = xmin, to = xmax, by = (xmax - xmin) / (nx - 1))
+
+# Grid for e: parameters for Tauchen
+ne            = 15
+ssigma_eps    = 0.02058
+llambda_eps   = 0.99
+m             = 1.5 
+
+P = Rtauchen(ne, ssigma_eps, llambda_eps, m)
+e_grid = exp(Tgrid(ne, ssigma_eps, llambda_eps, m))
+
+
+# Utility function
+ssigma        = 2 
+bbeta         = 0.97
+T             = 10
+
+# Prices
+r             = 0.07
+w             = 5
+
+```
+
+```{r solve}
+# Take care of the array shape
+V <- solve_single(nx, x_grid, ne, e_grid, P, ssigma, bbeta, T, r, w)
+```
+
+## Test
+
+```{r to_tibble, echo=FALSE}
+df <- tibble(
+  e = rep(1:ne, T * nx),
+  v = V
+  ) %>% 
+  mutate(t = (row_number() - 1) %/% (nx * ne) + 1) %>% 
+  arrange(e, t) %>% 
+  mutate(x = rep(x_grid, T * ne),
+         e = factor(e))
+
+```
+
+```{r plot, echo=FALSE}
+p1 <- df %>% 
+      filter(t == 1, e %in% c(1, 8, 15)) %>% 
+      ggplot(aes(x = x, y = v, color = e)) +
+      geom_line() +
+      labs(title = "t = 1", y = element_blank(), color = element_blank()) +
+      theme_minimal()
+
+p2 <- df %>% 
+      filter(t == 4, e %in% c(1, 8, 15)) %>% 
+      ggplot(aes(x = x, y = v, color = e)) +
+      geom_line() +
+      labs(title = "t = 4", y = element_blank(), color = element_blank()) +
+      theme_minimal()
+
+p3 <- df %>% 
+      filter(t == 7, e %in% c(1, 8, 15)) %>% 
+      ggplot(aes(x = x, y = v, color = e)) +
+      geom_line() +
+      labs(title = "t = 7", y = element_blank(), color = element_blank()) +
+      theme_minimal()
+
+p4 <- df %>% 
+      filter(t == 10, e %in% c(1, 8, 15)) %>% 
+      ggplot(aes(x = x, y = v, color = e)) +
+      geom_line() +
+      labs(title = "t = 10", y = element_blank(), color = element_blank()) +
+      theme_minimal()
+
+(p1 + p2) / (p3 + p4)
+```
+
+```{r test_equivalence}
+# Equivalence check between the single-thread and multi-thread
+all(V == solve_threads(nx, x_grid, ne, e_grid, P, ssigma, bbeta, T, r, w))
+```
+
+## Benchamark
+```{r}
+detectCores() # Num. of phisical cores is the half.
+```
+
+```{r benchmark, echo = FALSE}
+microbenchmark(solve_single(nx, x_grid, ne, e_grid, P, ssigma, bbeta, T, r, w),
+               solve_threads(nx, x_grid, ne, e_grid, P, ssigma, bbeta, T, r, w),
+          times = 10)
+```
+

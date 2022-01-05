@@ -24,7 +24,7 @@ md"""
 # ╔═╡ 8cc793d2-1140-4c05-8aca-3fc976c20299
 md"""
 ## Model
-This note examines the model of [Parallel Computing](https://github.com/davidzarruk/Parallel_Computing/blob/master/Julia_main_pmap.jl)
+This note examines the model of [Parallel Computing](https://github.com/davidzarruk/Parallel_Computing/)
 
 For ``t = 1, \dots, T``, households solve
 ```math
@@ -71,26 +71,19 @@ end
 u(c, states::States) = isone(states.σ) ? log(c) : c^(1 - states.σ) / (1 - states.σ)
 
 # ╔═╡ 83da66f7-c182-46d6-aa96-9e6fecaa5f50
-function solve(states::States)
+function solve_single(states::States)
 
 	@unpack T, nₓ, nₑ, r, w, β, P, x_grid, e_grid = states
 
 	V = zeros(nₓ, nₑ, T)
 
-	# t = T
-	for iₓ= 1:nₓ, iₑ = 1:nₑ
-		c = (1 + r) * x_grid[iₓ] + e_grid[iₑ] * w
-		V[iₓ, iₑ, T] = u(c, states)
-	end
-
-	# t ≤ T-1
-	for t = T-1:-1:1, iₓ= 1:nₓ, iₑ = 1:nₑ
+	for t = T:-1:1, iₓ= 1:nₓ, iₑ = 1:nₑ
 		
 		utility = -Inf
 		for iₓ′ = 1:nₓ
 			
-			expected = sum(P[iₑ, iₑ′] * V[iₓ′, iₑ′, t+1] for iₑ′ = 1:nₑ)
-			
+			expected = (t == T) ? 0.0 : 
+				sum(P[iₑ, iₑ′] * V[iₓ′, iₑ′, t+1] for iₑ′ = 1:nₑ)
 			c = (1 + r) * x_grid[iₓ] + e_grid[iₑ] * w - x_grid[iₓ′]
 			
 			if c > 0
@@ -108,7 +101,6 @@ end
 # ╔═╡ 0b948ff1-a049-4a11-a26d-d21a4ea8d75e
 md"""
 ### Multi-Threadding
-Number of threads: $(Threads.nthreads())
 """
 
 # ╔═╡ c6d35107-2ef1-4d05-bdcc-596e63b97f6a
@@ -118,14 +110,7 @@ function solve_threads(states::States)
 
 	V = zeros(nₓ, nₑ, T)
 
-	# t = T
-	for iₓ= 1:nₓ, iₑ = 1:nₑ
-		c = (1 + r) * x_grid[iₓ] + e_grid[iₑ] * w
-		V[iₓ, iₑ, T] = u(c, states)
-	end
-
-	# t ≤ T-1
-	for t = T-1:-1:1
+	for t = T:-1:1
 		Threads.@threads for i= 1:nₓ*nₑ
 			iₓ = (i-1) ÷ nₑ + 1
 			iₑ = (i-1) % nₑ + 1
@@ -133,7 +118,8 @@ function solve_threads(states::States)
 			utility = -Inf
 			for iₓ′ = 1:nₓ
 				
-				expected = sum(P[iₑ, iₑ′] * V[iₓ′, iₑ′, t+1] for iₑ′ = 1:nₑ)
+				expected = (t == T) ? 0.0 : 
+					sum(P[iₑ, iₑ′] * V[iₓ′, iₑ′, t+1] for iₑ′ = 1:nₑ)
 				
 				c = (1 + r) * x_grid[iₓ] + e_grid[iₑ] * w - x_grid[iₓ′]
 				
@@ -160,7 +146,7 @@ states = States();
 
 # ╔═╡ 2a87ba7d-35bd-4b10-9ed1-d6ef4b64f003
 let
-	V = solve(states)
+	V = solve_threads(states)
 	ps = []
 	for (i, t) ∈ enumerate([1, 4, 7, 10])
 		
@@ -178,7 +164,7 @@ let
 end
 
 # ╔═╡ ece3c54a-fe1f-48bf-baf4-31cb809c3140
-solve(states) ≈ solve_threads(states)
+solve_single(states) ≈ solve_threads(states) # Equivalence Check
 
 # ╔═╡ 3db88d69-f47b-4004-808d-14fd36d847d6
 md"""
@@ -186,7 +172,12 @@ md"""
 """
 
 # ╔═╡ 03df2329-fde2-4a75-ab88-4aada61f2a67
-@benchmark solve(states)
+@benchmark solve_single(states)
+
+# ╔═╡ d8d2c22a-2cc9-456c-944c-737568b6c8df
+md"""
+Number of threads: $(Threads.nthreads())
+"""
 
 # ╔═╡ 2bb376cc-d4d8-42ed-aa25-2eccd06b7b81
 @benchmark solve_threads(states)
@@ -1432,10 +1423,11 @@ version = "0.9.1+5"
 # ╠═c6d35107-2ef1-4d05-bdcc-596e63b97f6a
 # ╟─fb1b2877-78ff-4c3f-a2cc-63abd2cacfcf
 # ╠═76051d6d-7c9a-43f3-bed0-325f12671aef
-# ╠═2a87ba7d-35bd-4b10-9ed1-d6ef4b64f003
+# ╟─2a87ba7d-35bd-4b10-9ed1-d6ef4b64f003
 # ╠═ece3c54a-fe1f-48bf-baf4-31cb809c3140
 # ╟─3db88d69-f47b-4004-808d-14fd36d847d6
 # ╠═03df2329-fde2-4a75-ab88-4aada61f2a67
+# ╟─d8d2c22a-2cc9-456c-944c-737568b6c8df
 # ╠═2bb376cc-d4d8-42ed-aa25-2eccd06b7b81
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
