@@ -23,7 +23,7 @@ sourceCpp(here('r/life_cycle_threads.cpp'))
 ```
 
 ## Model
-This note examines the model of [Parallel Computing](https://github.com/davidzarruk/Parallel_Computing/blob/master/Julia_main_pmap.jl) by Rcpp.
+This note examines the model of [Parallel Computing](https://github.com/davidzarruk/Parallel_Computing/) by Rcpp.
 
 For $t = 1, \dots, T$, households solve
 $$\begin{aligned}

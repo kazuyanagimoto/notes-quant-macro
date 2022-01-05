@@ -24,7 +24,7 @@ md"""
 # ╔═╡ 8cc793d2-1140-4c05-8aca-3fc976c20299
 md"""
 ## Model
-This note examines the model of [Parallel Computing](https://github.com/davidzarruk/Parallel_Computing/blob/master/Julia_main_pmap.jl)
+This note examines the model of [Parallel Computing](https://github.com/davidzarruk/Parallel_Computing/)
 
 For ``t = 1, \dots, T``, households solve
 ```math
