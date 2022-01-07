@@ -25,3 +25,5 @@ Manifest.toml
 
 .vscode/
 .Rproj.user
+
+*ipynb_checkpoints
