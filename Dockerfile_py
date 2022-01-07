@@ -1,0 +1,10 @@
+FROM jupyter/minimal-notebook:latest
+
+USER root
+
+#Python
+COPY requirements.txt /tmp
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements.txt
+
+USER $NB_UID
