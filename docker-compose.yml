@@ -3,8 +3,19 @@ services:
     rstudio:
         build:
             context: .
+            dockerfile: Dockerfile_r
         environment:
             - TZ=Europe/Madrid
             - DISABLE_AUTH=true
         volumes:
             - .:/home/rstudio/work
+    python:
+        build:
+            context: .
+            dockerfile: Dockerfile_py
+        environment:
+            - JUPYTER_ENABLE_LAB=yes
+        ports:
+            - '8888:8888'
+        volumes:
+            - .:/home/jovyan/work
