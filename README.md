@@ -7,3 +7,4 @@ by my codes.
 
 - [Julia](https://nicetak.github.io/notes-quant-macro/life_cycle.jl.html)
 - [Rcpp](https://nicetak.github.io/notes-quant-macro/life_cycle_rcpp.html)
+- [Python + Numba](https://nicetak.github.io/notes-quant-macro/life_cycle_numba.html)
