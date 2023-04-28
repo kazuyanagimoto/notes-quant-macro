@@ -17,8 +17,8 @@ by my codes.
 
 | Main                  | link           | Machine | Time   | 
 | --------------------- | -------------- | ------- | ------ | 
-| Julia                 | [html](https://nicetak.github.io/notes-quant-macro/life_cycle.jl.html)         | Local   | 1.179s | 
-| Rcpp                  | [html](https://nicetak.github.io/notes-quant-macro/life_cycle_rcpp.html)         | Local   | 1.083s | 
-| Python + Numba        | [html](https://nicetak.github.io/notes-quant-macro/life_cycle_numba.html)         | Local   | 1.34s  | 
-| CUDA + Python + Numba | [html](https://nicetak.github.io/notes-quant-macro/life_cycle_cuda.html), [colab](https://colab.research.google.com/drive/1eszle42IDv5Jec4YCDZQCHrZeZBLJVTC?usp=sharing) | Colab   | 0.509s | 
+| Julia                 | [html](https://kazuyanagimoto.com/notes-quant-macro/life_cycle.jl.html)         | Local   | 1.179s | 
+| Rcpp                  | [html](https://kazuyanagimoto.com/notes-quant-macro/life_cycle_rcpp.html)         | Local   | 1.083s | 
+| Python + Numba        | [html](https://kazuyanagimoto.com/notes-quant-macro/life_cycle_numba.html)         | Local   | 1.34s  | 
+| CUDA + Python + Numba | [html](https://kazuyanagimoto.com/notes-quant-macro/life_cycle_cuda.html), [colab](https://colab.research.google.com/drive/1eszle42IDv5Jec4YCDZQCHrZeZBLJVTC?usp=sharing) | Colab   | 0.509s | 
 
